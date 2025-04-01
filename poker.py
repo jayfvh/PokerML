@@ -227,12 +227,9 @@ class game:
 
             if hi == 0:
                 total1 += value
-                #print(f"PLAYER HAND {value}")
             else:
                 total2 = ((0.5 * 52 - rem) / (52 - cards)) + value
                 total2 *= (self.players - 1)
-                #print(f"OTHER HAND {value} -> {value * (self.players - 1)}")
-                #print(f"\tTOTAL -> {total}")
 
         return round(total1,0), round(total2,0)
 
@@ -303,7 +300,6 @@ class game:
             types = [0] * 4
             pairs = []
             trios = []
-            # flush = []
 
             flush = None
             straight = None
@@ -323,9 +319,6 @@ class game:
                 suits.append(suit)
                 sets[no] += 1
                 types[suit] += 1
-
-            #print(f"{use} -> {sets} -> {types}")
-
             streak = 0
             last = None
             #print(sets)
@@ -336,21 +329,15 @@ class game:
                     trios.append(i)
                 elif no == 2:
                     pairs.append(i)
-                #print(sets)
                 if last is not None and no > 0 and i - last == 1:
                     streak += 1
-                    #print(f"HERE {i} {streak}")
                 else:
                     if streak >= 5:
                         straight = i
-                        #print("HERE")
                     streak = 0
                 last = i
             if streak >= 5:
                 straight = i
-
-            #print(straight)
-
             for i, no in enumerate(types):
                 if no >= 5:
                     flush = []
@@ -362,9 +349,7 @@ class game:
                     flush.reverse()
                     diff = 5 - len(flush)
                     flush = flush[diff:]
-
-            #print(straight)
-
+                    
             if len(pairs) >= 2:
                 two_Pair = [pairs[-1], pairs[-2]]
             elif len(pairs) == 1:
@@ -376,7 +361,6 @@ class game:
             if len(pairs) > 0 and len(trios) > 0:
                 full_House = [trios[-1], pairs[-1]]
 
-            #print(f'{straight}  ____')
 
             if flush is not None and straight is not None:
                 use.sort()
@@ -391,41 +375,28 @@ class game:
                         streak = 1
                     last = card
                     best[a] = [8, (last - 8) // 13]
-                    #print("FUCK")
                 if streak >= 5:
                     best[a] = [8, (last - 8) // 13]
             if best[a] == 0:
                 if four is not None:
                     best[a] = [7, four, max(numbers - {four})]
-                    #print("a")
                 elif full_House is not None:
                     best[a] = [6, full_House]
-                    #print("b")
                 elif flush is not None:
                     best[a] = [5, flush]
-                    #print("c")
                 elif straight is not None:
-                    #print(f'{straight}  ___   _')
                     best[a] = [4, straight]
-                    #print("d")
                 elif three is not None:
                     best[a] = [3, three, sorted(numbers - {three}, reverse=True)[:2]]
-                    #print("e")
                 elif two_Pair is not None:
                     best[a] = [2, two_Pair, max(numbers - {two_Pair[0], two_Pair[1]})]
-                    #print("f")
                 elif pair is not None:
                     best[a] = [1, pair, sorted(numbers - {pair}, reverse=True)[:3]]
-                    #print("g")
                 else:
-                    #print("HEELLOOO?")
                     mycards.sort()
                     mycards.reverse()
                     best[a] = [0, mycards[:5]]
-                    #print("aa")
 
-            # print(best[a])
-        #print(best)
         winners = []
         win = max(best)
         for i, hand in enumerate(best):
@@ -433,28 +404,6 @@ class game:
                 winners.append(i)
 
         return winners
-
-
-# def play2():
-#     hands = [[] for _ in range(players)]
-#     middle = []
-#     bet = 0
-#     deal(0,cards, hands,middle)
-#     #Hands [0] = ML/User hand
-#     action = [3,1,1]
-#     deal(0, cards, hands, middle)
-#     bet += 1 #Bet Ammount [1,2,10,20,Stop] at each stage or stop
-#     deal(1, cards, hands, middle)
-#     bet += 1 #Bet Ammount [1,2,10,20,Stop] at each stage or stop
-#     deal(2, cards, hands, middle)
-#     bet += 1 #Bet Ammount [1,2,10,20,Stop] at each stage or stop
-#     deal(3,cards, hands,middle)
-#     bet += 1  # Bet Ammount [1,2,10,20,Stop] at each stage or stop
-#     winners = winner(hands, middle)
-#     if 0 not in winners:
-#         reward = -bet
-#     else:
-#         reward = bet*3
 
 
 Q = {}  # Q-table
@@ -559,10 +508,8 @@ def jaytrain(players, games=100, test=0):
                     result = test(hands, betting, stage + 1)
                     stageResult = max(stageResult,result)
 
-            #save += (f"\t|{action}||{bet}| ____ ({hands[stage]}, {betting}, {stage}) -> {result}\n")
             Q[state][action][1] = np.append(Q[state][action][1], result)
             Q[state][action][0] = np.median(Q[state][action][1]) * 0.4 + np.average(Q[state][action][1] * 0.6)
-        #save += (f"({bet},{stage}) -> {stageResult}\n")
         Memo[state] = stageResult
         return stageResult
 
@@ -632,58 +579,6 @@ def runBot(games):
             money -= bet
 
     print(f"Game finished. Winner: {totalBets}  {money}")
-
-
-
-# def test_agent(players, games=100):
-#     total_rewards = []
-#     count = 0
-#     confidentBet = 0
-#     for _ in range(games):
-#         print("_" * 40 + "\n")
-#         round = game(players)
-#         hand, center = round.deal(0)
-#         power = round.hand_power() * 3
-#         state = (power, 0, 0)
-#         bet = 1
-#         total_reward = 0
-#
-#         for stage in range(1, 5):  # Betting stages
-#             if state not in Q:
-#                 Q[state] = {a: 0 for a in actions}  # Initialize actions for this state
-#
-#             # Always exploit the best action
-#             max_action = max(actions.items(), key=lambda x: x[1][0])
-#             action_key, (max_value, _) = max_action
-#
-#             print()
-#
-#             if action_key == -1:  # Fold
-#                 print(f"{hand} | {center} -> FOLDING WITH ${bet} -> {power}")
-#                 total_reward += -bet  # Penalty for folding
-#                 break
-#             else:
-#                 print(f"{hand} | {center} -> BETTING ${action} = {bet + action} -> {power}")
-#                 bet += action
-#                 hand, center = round.deal(stage)
-#
-#             if stage == 4:
-#                 count += 1
-#                 winners = round.winner()
-#                 if 0 in winners:  # Agent wins
-#                     confidentBet += bet * 4
-#                     total_reward += bet * 4
-#                 else:  # Agent loses
-#                     confidentBet -= bet
-#                     total_reward += -bet
-#             power = round.hand_power()
-#             next_state = (power, bet, stage)
-#             state = next_state
-#
-#         total_rewards.append(total_reward)
-#
-#     print(f"CONFIDENT {count} -> ${confidentBet}")
-#     return total_rewards
 
 
 def hypergeometric(selected, ammount, needed, known, totKnown):
@@ -757,53 +652,7 @@ def suit_hypergeometric(selected, ammount, known, totKnown):
     except ValueError:
         return 0
 
-# for i in range(10):
-#     round = game(5)
-#     round.deal(0)
-#     power = round.hand_power()
-#     print(power)
-#     round.deal(1)
-#     power = round.hand_power()
-#     print(power)
-#     round.deal(2)
-#     power = round.hand_power()
-#     print(power)
-#     round.deal(3)
-#     power = round.hand_power()
-#     print(power)
-#
-#     if power > 60:
-#         power = round.hand_power(True)
-#         print(power)
-#         break
-
-
-
-
-# for _ in range(50):  # Number of games
-#     play(5)
-#
-# for  i in Q:
-#     print(i)
-# epsilon = 0
-# test_rewards = test_agent(players=5, games=1000)
-# print(f"Average reward over 100 test games: {np.mean(test_rewards)}")
-# print(f"Rewards: {test_rewards}")
-
 
 jaytrain(5,100000)
 runBot(10000)
 g = game(5)
-# g.hands = [[43, 57], [40, 42], [29, 8], [30, 27], [41, 23]]
-# g.middle = [54, 45, 16, 20, 52]
-# print(g.winner())
-# g = game(5)
-# g.RawCards = [[38,53],[28, 51, 58, 49, 11]]
-# print(g.hand_power(1))
-# epsilon = 1.0  # Exploration rate
-# epsilon_decay = 0.99995
-# min_epsilon = 0.01
-#
-# for i in range(100000):
-#     epsilon = max(min_epsilon, epsilon * epsilon_decay)
-# print(epsilon)
